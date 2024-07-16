@@ -1,0 +1,12 @@
+services:
+  asp-backend:
+    build: ./asp-backend/asp-backend
+    ports:
+      - 8000:8080
+
+  web-client:
+    build: ./web-client
+    environment:
+      BACKEND_HOST: "https://localhost:8000"
+    ports:
+      - 3000:3000
