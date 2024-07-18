@@ -1,3 +1,5 @@
+using asp_backend.Contexts;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -21,5 +23,8 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+
+var db = new UserContext();
+db.Database.EnsureCreated();
 
 app.Run();
