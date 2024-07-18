@@ -3,9 +3,11 @@
 </script>
 
 <template>
-  <NuxtPage/>
+<div>
+  login
+</div>
 </template>
 
-<style>
+<style scoped>
 
 </style>

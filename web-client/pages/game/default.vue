@@ -3,9 +3,9 @@
 </script>
 
 <template>
-  <NuxtPage/>
+game/default
 </template>
 
-<style>
+<style scoped>
 
 </style>

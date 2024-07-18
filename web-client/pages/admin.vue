@@ -3,9 +3,9 @@
 </script>
 
 <template>
-  <NuxtPage/>
+admin
 </template>
 
-<style>
+<style scoped>
 
 </style>

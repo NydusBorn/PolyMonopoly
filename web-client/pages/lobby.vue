@@ -3,9 +3,9 @@
 </script>
 
 <template>
-  <NuxtPage/>
+lobby
 </template>
 
-<style>
+<style scoped>
 
 </style>
