@@ -8,7 +8,8 @@ export default defineNuxtConfig({
   modules: [
       '@formkit/auto-animate/nuxt',
       '@hypernym/nuxt-anime',
-      '@primevue/nuxt-module'
+      '@primevue/nuxt-module',
+      "@nuxtjs/tailwindcss"
   ],
   primevue: {
     options: {
