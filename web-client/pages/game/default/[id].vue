@@ -1,9 +1,9 @@
 <script setup lang="ts">
-
+const route = useRoute()
 </script>
 
 <template>
-game/default
+game/default/{{route.params.id}}
 </template>
 
 <style scoped>

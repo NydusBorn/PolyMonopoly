@@ -6,17 +6,35 @@ import {delay} from "unicorn-magic";
 const username = ref('')
 const password = ref('')
 
-const login_message = ref('register')
+const login_message_guest = computed(() => {
+  return "Logs you in as a guest"
+})
+const login_severity_guest = computed(()=>{
+  return username.value == '' || password.value != ''
+})
+const login_disabled_guest = computed(()=>{
+  return username.value == '' || password.value != ''
+})
+
+const login_message_user = computed(() => {
+  return "Logs you in as a registered user, this time it will {register/login}"
+})
+const login_severity_user = computed(()=>{
+  return username.value == '' || password.value != ''
+})
+const login_disabled_user = computed(()=>{
+  return username.value == '' || password.value == ''
+})
 
 const animation = async () => {
   while (true) {
     let animation_unit = document.createElement('p')
     animation_unit.classList.add('pi-spin')
     animation_unit.innerText = '$'
-    document.getElementById('animation_container').appendChild(animation_unit)
+    document.getElementById('animation_container')!.appendChild(animation_unit)
     animation_unit.style.left = Math.random() * 99 + '%'
     animation_unit.style.top = -Math.random() * 99 - 20 + '%'
-    animation_unit.style.scale = Math.random() * 5 + 2
+    animation_unit.style.scale = (Math.random() * 5 + 2).toString()
     animation_unit.style.color = 'gold'
     animation_unit.style.position = 'absolute'
     anime({
@@ -25,7 +43,7 @@ const animation = async () => {
       duration: 10000,
       easing: 'easeInQuad',
       complete: () => {
-        document.getElementById('animation_container').removeChild(animation_unit)
+        document.getElementById('animation_container')!.removeChild(animation_unit)
       }
     })
     await delay({milliseconds: 125})
@@ -50,14 +68,14 @@ onMounted(()=>{
             <FloatLabel>
               <div class="flex gap-2">
                 <InputText id="username" v-model="username"/>
-                <Button v-tooltip="'Logs you in as a guest'" icon="pi pi-user"/>
+                <Button v-tooltip="login_message_guest" :disabled="login_disabled_guest" :severity="login_severity_guest" icon="pi pi-user"/>
               </div>
               <label for="username">Username</label>
             </FloatLabel>
             <FloatLabel class="hide_pass">
               <div class="flex gap-2">
                 <Password id="password" v-model="password" />
-                <Button v-tooltip="'Logs you in as a registered user, this time it will {' + login_message + '}'" icon="pi pi-check"/>
+                <Button v-tooltip="login_message_user" :disabled="login_disabled_user" :severity="login_severity_user" icon="pi pi-check"/>
               </div>
               <label for="password">Password</label>
             </FloatLabel>
