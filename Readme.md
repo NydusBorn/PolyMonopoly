@@ -72,11 +72,12 @@ This project is a simple implementation of the popular board game Monopoly. It i
     npm install
     ```
 3. Running the Web Client:
-    1. Start the development server:
-        ```Bash
-        npm run dev
-        ```
-    2. Open your browser and navigate to http://localhost:3000.
+   1. Make sure that BACKEND_HOST is set in your environment. (it is set by direnv within the repository)
+   2. Start the development server:
+       ```Bash
+       npm run dev
+       ```
+   3. Open your browser and navigate to http://localhost:3000.
 ##### For Backend
 1. Navigate to the backend directory:
     ```Bash
