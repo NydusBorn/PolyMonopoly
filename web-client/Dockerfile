@@ -7,10 +7,12 @@ RUN npm install
 
 FROM base AS build
 WORKDIR /app
-COPY tsconfig.json ./
 COPY nuxt.config.ts ./
-COPY public ./
+COPY public ./public/
 COPY app.vue ./
+COPY theme.js ./
+COPY pages ./pages/
+COPY server/api ./server/api
 RUN npm run build
 
 FROM build AS final

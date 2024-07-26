@@ -1,4 +1,4 @@
-# Monopoly Project
+# PolyMonopoly
 
 This project is a simple implementation of the popular board game Monopoly. It includes a web client that allows players to play the game online.
 

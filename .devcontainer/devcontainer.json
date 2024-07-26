@@ -7,12 +7,16 @@
 	"workspaceFolder": "/code",
 	"customizations": {
 		"vscode": {
-			"settings": {},
+			"settings": {
+				"terminal.integrated.defaultProfile.linux": "zsh"
+			},
 			"extensions": [
 				"ms-dotnettools.csharp",
 				"ms-dotnettools.csdevkit",
 				"ms-dotnettools.vscodeintellicode-csharp",
-				"nuxtr.nuxt-vscode-extentions"
+				"nuxtr.nuxt-vscode-extentions",
+				"nefrob.vscode-just-syntax",
+				"mkhl.direnv"
 			]
 		}
 	},

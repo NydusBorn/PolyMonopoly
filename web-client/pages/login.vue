@@ -6,24 +6,87 @@ import {delay} from "unicorn-magic";
 const username = ref('')
 const password = ref('')
 
+enum passuser_state{
+  none,
+  guest,
+  guest_error_exists,
+  user,
+  user_new,
+  user_error_pass_incorrect
+}
+
+const login_state = computed(()=>{
+  if (username.value == ''){
+    return passuser_state.none
+  }
+  if (password.value == ''){
+    //TODO: query db for guests with that name (if they exist, return guest_error_exists)
+    return passuser_state.guest
+  }
+  //TODO: check if user exists, if does, check for password, if incorrect, return user_error_pass_incorrect
+  //TODO: if user doesn't exist, return user_new
+  //TODO: if user exists, and password is correct, return user
+  return passuser_state.user
+})
+
 const login_message_guest = computed(() => {
-  return "Logs you in as a guest"
+  switch (login_state.value) {
+    case passuser_state.none:{
+      return "You must input a username"
+    }
+    case passuser_state.guest:{
+      return "Logs you in as a guest"
+    }
+    case passuser_state.guest_error_exists:{
+      return "Guest with that name already exists, either wait up to 24 hours for that guest to be deleted or use a different name"
+    }
+    case passuser_state.user:
+    case passuser_state.user_new:
+    case passuser_state.user_error_pass_incorrect:{
+      return "Guests do not have a password"
+    }
+  }
 })
 const login_severity_guest = computed(()=>{
-  return username.value == '' || password.value != ''
+  if (login_state.value === passuser_state.guest) {
+    return "primary"
+  } else {
+    return "danger"
+  }
 })
 const login_disabled_guest = computed(()=>{
-  return username.value == '' || password.value != ''
+  return login_state.value !== passuser_state.guest;
 })
 
 const login_message_user = computed(() => {
-  return "Logs you in as a registered user, this time it will {register/login}"
+  switch (login_state.value) {
+    case passuser_state.none:{
+      return "You must input a username"
+    }
+    case passuser_state.guest:
+    case passuser_state.guest_error_exists:{
+      return "You must input a password"
+    }
+    case passuser_state.user:{
+      return "Logs you in as a registered user"
+    }
+    case passuser_state.user_new:{
+      return "Registers you as a new user"
+    }
+    case passuser_state.user_error_pass_incorrect:{
+      return "Password is incorrect"
+    }
+  }
 })
 const login_severity_user = computed(()=>{
-  return username.value == '' || password.value != ''
+  if (login_state.value === passuser_state.user || login_state.value === passuser_state.user_new) {
+    return "primary"
+  } else {
+    return "danger"
+  }
 })
 const login_disabled_user = computed(()=>{
-  return username.value == '' || password.value == ''
+  return login_state.value !== passuser_state.user && login_state.value !== passuser_state.user_new;
 })
 
 const animation = async () => {
@@ -72,7 +135,7 @@ onMounted(()=>{
               </div>
               <label for="username">Username</label>
             </FloatLabel>
-            <FloatLabel class="hide_pass">
+            <FloatLabel>
               <div class="flex gap-2">
                 <Password id="password" v-model="password" />
                 <Button v-tooltip="login_message_user" :disabled="login_disabled_user" :severity="login_severity_user" icon="pi pi-check"/>
@@ -87,9 +150,6 @@ onMounted(()=>{
 </template>
 
 <style scoped>
-.hide_pass{
-  display: v-bind("!username ? 'none' : 'flex'")
-}
 #animation_container{
   position: absolute;
   left: -200px;

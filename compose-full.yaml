@@ -1,11 +1,13 @@
 services:
   asp-backend:
     build: ./asp-backend/asp-backend
+    restart: unless-stopped
     ports:
       - 8000:8080
 
   web-client:
     build: ./web-client
+    restart: unless-stopped
     environment:
       BACKEND_HOST: "https://localhost:8000"
     ports:

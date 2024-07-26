@@ -1,6 +1,7 @@
 services:
   web-client:
     build: ./web-client
+    restart: unless-stopped
     environment:
       BACKEND_HOST: "https://localhost:8000"
     ports:
