@@ -19,19 +19,9 @@ RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && nvm install 22 && nvm us
 
 RUN mkdir -p /code
 WORKDIR /code
-
-COPY ../asp-backend ./asp-backend/
+COPY ../ ./
 WORKDIR /code/asp-backend
 RUN dotnet restore ./asp-backend/asp-backend.csproj
-WORKDIR /code
-COPY ../web-client ./web-client/
 WORKDIR /code/web-client
 RUN npm install
 WORKDIR /code
-COPY ../justfile ./justfile
-COPY ../.devcontainer ./.devcontainer
-COPY ../.gitignore ./
-COPY ../compose-backend.yaml ./
-COPY ../compose-full.yaml ./
-COPY ../compose-client.yaml ./
-COPY ../Readme.md ./

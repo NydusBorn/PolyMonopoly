@@ -12,6 +12,8 @@ public class UserContext : DbContext
 
 public class User
 {
-    public int Id { get; set; }
+    public int Id { get; }
+    public required string UserName { get; set; }
     public string Name { get; set; }
+    public required string PasswordHash { get; set; }
 }

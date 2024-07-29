@@ -15,18 +15,25 @@ enum passuser_state{
   user_error_pass_incorrect
 }
 
+const computing = ref(false)
 const login_state = computed(()=>{
-  if (username.value == ''){
-    return passuser_state.none
+  const result = () => {
+    if (username.value == ''){
+      return passuser_state.none
+    }
+    if (password.value == ''){
+      //TODO: query db for guests with that name (if they exist, return guest_error_exists)
+      return passuser_state.guest
+    }
+    //TODO: check if user exists, if does, check for password, if incorrect, return user_error_pass_incorrect
+    //TODO: if user doesn't exist, return user_new
+    //TODO: if user exists, and password is correct, return user
+    return passuser_state.user
   }
-  if (password.value == ''){
-    //TODO: query db for guests with that name (if they exist, return guest_error_exists)
-    return passuser_state.guest
-  }
-  //TODO: check if user exists, if does, check for password, if incorrect, return user_error_pass_incorrect
-  //TODO: if user doesn't exist, return user_new
-  //TODO: if user exists, and password is correct, return user
-  return passuser_state.user
+  computing.value = true
+  const result_val = result()
+  computing.value = false
+  return result_val
 })
 
 const login_message_guest = computed(() => {
@@ -55,7 +62,7 @@ const login_severity_guest = computed(()=>{
   }
 })
 const login_disabled_guest = computed(()=>{
-  return login_state.value !== passuser_state.guest;
+  return login_state.value !== passuser_state.guest || computing.value;
 })
 
 const login_message_user = computed(() => {
@@ -86,7 +93,7 @@ const login_severity_user = computed(()=>{
   }
 })
 const login_disabled_user = computed(()=>{
-  return login_state.value !== passuser_state.user && login_state.value !== passuser_state.user_new;
+  return (login_state.value !== passuser_state.user && login_state.value !== passuser_state.user_new)  || computing.value;
 })
 
 const animation = async () => {
