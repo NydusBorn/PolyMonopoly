@@ -15,8 +15,9 @@ enum passuser_state{
   user_error_pass_incorrect
 }
 
-const computing = ref(false)
+const computing = ref(0)
 const login_state = computed(()=>{
+  //TODO: implement request queue
   const result = () => {
     if (username.value == ''){
       return passuser_state.none
@@ -30,9 +31,9 @@ const login_state = computed(()=>{
     //TODO: if user exists, and password is correct, return user
     return passuser_state.user
   }
-  computing.value = true
+  computing.value += 1
   const result_val = result()
-  computing.value = false
+  computing.value += 1
   return result_val
 })
 
@@ -62,7 +63,7 @@ const login_severity_guest = computed(()=>{
   }
 })
 const login_disabled_guest = computed(()=>{
-  return login_state.value !== passuser_state.guest || computing.value;
+  return login_state.value !== passuser_state.guest || computing.value >= 1;
 })
 
 const login_message_user = computed(() => {
@@ -93,7 +94,7 @@ const login_severity_user = computed(()=>{
   }
 })
 const login_disabled_user = computed(()=>{
-  return (login_state.value !== passuser_state.user && login_state.value !== passuser_state.user_new)  || computing.value;
+  return (login_state.value !== passuser_state.user && login_state.value !== passuser_state.user_new)  || computing.value >= 1;
 })
 
 const animation = async () => {

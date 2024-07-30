@@ -30,15 +30,14 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-var db = new UserContext();
+var userDB = new UserContext();
 
 // Fine for in development, removes db to stay in compliance with current schema
-db.Database.EnsureDeleted();
-db.Database.EnsureCreated();
+userDB.Database.EnsureDeleted();
+userDB.Database.EnsureCreated();
 
 // If modification of db is required in production, then use the Migrate method (you must consult ef core documentation on migrations,
 // and also, if you started with EnsureCreated, then you must roll your own migrations manually (first create a new db via migrations (that fits the schema), then use your code to migrate db to db))
 // db.Database.Migrate();
 
-// TODO: add /version endpoint
 app.Run();

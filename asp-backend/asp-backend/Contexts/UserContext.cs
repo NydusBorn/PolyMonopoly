@@ -10,10 +10,20 @@ public class UserContext : DbContext
         => options.UseSqlite($"Data Source=./users.db");
 }
 
+public enum UserRole
+{
+    Guest,
+    User,
+    Admin
+}
+
+[PrimaryKey("Id")]
 public class User
 {
     public int Id { get; }
+    public DateTime Created { get; }
+    public required UserRole Role { get; set; }
     public required string UserName { get; set; }
-    public string Name { get; set; }
-    public required string PasswordHash { get; set; }
+    public string? Name { get; set; }
+    public string? PasswordHash { get; set; }
 }
