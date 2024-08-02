@@ -6,8 +6,8 @@ public class UserContext : DbContext
 {
     public DbSet<User> Users { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder options)
-        => options.UseSqlite($"Data Source=./users.db");
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        => optionsBuilder.UseSqlite($"Data Source=./users.db");
 }
 
 public enum UserRole
@@ -21,9 +21,9 @@ public enum UserRole
 public class User
 {
     public int Id { get; }
-    public DateTime Created { get; }
+    public DateTime Created { get; init; }
     public required UserRole Role { get; set; }
-    public required string UserName { get; set; }
+    public required string UserName { get; init; }
     public string? Name { get; set; }
     public string? PasswordHash { get; set; }
 }

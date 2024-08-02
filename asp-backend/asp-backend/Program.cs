@@ -1,4 +1,6 @@
+using asp_backend;
 using asp_backend.Contexts;
+using Microsoft.AspNetCore.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +15,9 @@ builder.Services.AddCors(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddAuthentication("Auth")
+    .AddScheme<AuthenticationSchemeOptions, Auth>("Auth", options => { });
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -26,6 +31,7 @@ app.UseCors();
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

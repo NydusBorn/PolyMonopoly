@@ -1,4 +1,6 @@
+using System.Text;
 using asp_backend.Contexts;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -64,20 +66,55 @@ public class UserController : ControllerBase
     [HttpPost]
     [ProducesResponseType(200, Type = typeof(int))]
     [ProducesResponseType(409, Type = typeof(string))]
-    public ActionResult Register([FromQuery] string username, [FromQuery] string password)
+    public ActionResult Register([FromQuery] string username, [FromQuery] string? password)
     {
-        if (_userContext.Users.Any(x => x.UserName == username))
+        var possibleUser = _userContext.Users.FirstOrDefault(x => x.UserName == username);
+        if (possibleUser != null)
         {
-            return Conflict("User already exists");
+            return Conflict(possibleUser.Role == UserRole.Guest ? "Guest already exists" : "User already exists");
         }
         var user = new User
         {
             UserName = username,
-            Role = UserRole.User
+            Role = password != null ? UserRole.User : UserRole.Guest,
+            Created = DateTime.Now
         };
+        if (password == null)
+        {
+            var tBuilder = new StringBuilder();
+            for (int i = 0; i < 16; i++)
+            {
+                tBuilder.Append((char)Random.Shared.Next('A', 'Z' + 1));
+            }
+
+            password = tBuilder.ToString();
+        }
         user.PasswordHash = _hasher.HashPassword(user, password);
         _userContext.Users.Add(user);
         _userContext.SaveChanges();
-        return Ok(user.Id);
+
+        if (user.Role == UserRole.Guest)
+        {
+            Dictionary<string, string> js = new();
+            js.Add("id", user.Id.ToString());
+            js.Add("password", password);
+            return Ok(js);
+        }
+        else
+        {
+            return Ok(user.Id);
+        }
+    }
+    [HttpGet]
+    [Authorize]
+    public ActionResult<string> AuthCheck()
+    {
+        return Ok("I am authorised");
+    }
+    [HttpGet]
+    [Authorize(Roles = "User")]
+    public ActionResult<string> AuthCheckUser()
+    {
+        return Ok("I am authorised User");
     }
 }
