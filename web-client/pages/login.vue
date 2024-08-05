@@ -7,46 +7,79 @@ const username = ref('')
 const password = ref('')
 
 enum passuser_state{
+  error,
   none,
+  error_guest_exists,
+  error_user_exists,
   guest,
-  guest_error_exists,
   user,
   user_new,
   user_error_pass_incorrect
 }
 
 const computing = ref(0)
-const login_state = computed(()=>{
-  //TODO: implement request queue
-  const result = () => {
+const login_state = computed(async ()=>{
+  //TODO: Refactor into multiple methods ran when a specific field changes
+  //TODO: Implement request queue
+  const result = async () => {
     if (username.value == ''){
       return passuser_state.none
     }
-    if (password.value == ''){
-      //TODO: query db for guests with that name (if they exist, return guest_error_exists)
-      return passuser_state.guest
+    let resp = await fetch(`${localStorage.getItem("backend_host")}/User/UserExists?username=${username.value}`)
+    if (!resp.ok){
+      return passuser_state.error
     }
-    //TODO: check if user exists, if does, check for password, if incorrect, return user_error_pass_incorrect
-    //TODO: if user doesn't exist, return user_new
-    //TODO: if user exists, and password is correct, return user
-    return passuser_state.user
+    let existance = await resp.text()
+    if (existance == "Guest"){
+      return passuser_state.error_guest_exists
+    }
+    if (password.value == ''){
+      if (existance == "User"){
+        return passuser_state.error_user_exists
+      } else {
+        return passuser_state.guest
+      }
+    }
+    if (existance == "User"){
+      resp = await fetch(`${localStorage.getItem("backend_host")}/User/GetUid?username=${username.value}`)
+      if (!resp.ok){
+        return passuser_state.error
+      }
+      let uid = parseInt(await resp.text())
+      resp = await fetch(`${localStorage.getItem("backend_host")}/User/TryLogin?uid=${uid}&password=${password.value}`)
+      if (!resp.ok){
+        return passuser_state.error
+      }
+      if (await resp.text() == "true"){
+        return passuser_state.user
+      }else{
+        return passuser_state.user_error_pass_incorrect
+      }
+    }
+    return passuser_state.user_new
   }
   computing.value += 1
-  const result_val = result()
+  const result_val = await result()
   computing.value += 1
   return result_val
 })
 
-const login_message_guest = computed(() => {
-  switch (login_state.value) {
+const login_message_guest = computed(async () => {
+  switch (await login_state.value) {
+    case passuser_state.error:{
+      return "An error occurred"
+    }
     case passuser_state.none:{
       return "You must input a username"
     }
     case passuser_state.guest:{
       return "Logs you in as a guest"
     }
-    case passuser_state.guest_error_exists:{
+    case passuser_state.error_guest_exists:{
       return "Guest with that name already exists, either wait up to 24 hours for that guest to be deleted or use a different name"
+    }
+    case passuser_state.error_user_exists:{
+      return "User with that name already exists, use a different name"
     }
     case passuser_state.user:
     case passuser_state.user_new:
@@ -55,25 +88,30 @@ const login_message_guest = computed(() => {
     }
   }
 })
-const login_severity_guest = computed(()=>{
-  if (login_state.value === passuser_state.guest) {
+const login_severity_guest = computed(async ()=>{
+  if (await login_state.value === passuser_state.guest) {
     return "primary"
   } else {
     return "danger"
   }
 })
-const login_disabled_guest = computed(()=>{
-  return login_state.value !== passuser_state.guest || computing.value >= 1;
+const login_disabled_guest = computed(async ()=>{
+  return await login_state.value !== passuser_state.guest || computing.value >= 1;
 })
 
-const login_message_user = computed(() => {
-  switch (login_state.value) {
+const login_message_user = computed(async () => {
+  switch (await login_state.value) {
+    case passuser_state.error:{
+      return "An error occurred"
+    }
     case passuser_state.none:{
       return "You must input a username"
     }
-    case passuser_state.guest:
-    case passuser_state.guest_error_exists:{
+    case passuser_state.guest:{
       return "You must input a password"
+    }
+    case passuser_state.error_guest_exists:{
+      return "Guest with that name already exists, either wait up to 24 hours for that guest to be deleted or use a different name"
     }
     case passuser_state.user:{
       return "Logs you in as a registered user"
@@ -81,21 +119,24 @@ const login_message_user = computed(() => {
     case passuser_state.user_new:{
       return "Registers you as a new user"
     }
+    case passuser_state.error_user_exists:
     case passuser_state.user_error_pass_incorrect:{
       return "Password is incorrect"
     }
   }
 })
-const login_severity_user = computed(()=>{
-  if (login_state.value === passuser_state.user || login_state.value === passuser_state.user_new) {
+const login_severity_user = computed(async ()=>{
+  if (await login_state.value === passuser_state.user || await login_state.value === passuser_state.user_new) {
     return "primary"
   } else {
     return "danger"
   }
 })
-const login_disabled_user = computed(()=>{
-  return (login_state.value !== passuser_state.user && login_state.value !== passuser_state.user_new)  || computing.value >= 1;
+const login_disabled_user = computed(async ()=>{
+  return (await login_state.value !== passuser_state.user && await login_state.value !== passuser_state.user_new)  || computing.value >= 1;
 })
+
+//TODO: Implement buttons
 
 const animation = async () => {
   while (true) {

@@ -27,8 +27,8 @@ public class UserController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(200, Type = typeof(int))]
-    [ProducesResponseType(404, Type = typeof(string))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(int))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
     public ActionResult GetUid([FromQuery] string username)
     {
         int uid = _userContext.Users.FirstOrDefault(x => x.UserName == username)?.Id ?? -1;
@@ -40,8 +40,8 @@ public class UserController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(200, Type = typeof(bool))]
-    [ProducesResponseType(404, Type = typeof(string))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(bool))]
+    [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
     public ActionResult TryLogin([FromQuery] int uid, [FromQuery] string password)
     {
         var user = _userContext.Users.FirstOrDefault(x => x.Id == uid);
@@ -64,8 +64,9 @@ public class UserController : ControllerBase
     }
 
     [HttpPost]
-    [ProducesResponseType(200, Type = typeof(int))]
-    [ProducesResponseType(409, Type = typeof(string))]
+    [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(int))]
+    [ProducesResponseType(StatusCodes.Status202Accepted, Type = typeof(Dictionary<string, string>))]
+    [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(string))]
     public ActionResult Register([FromQuery] string username, [FromQuery] string? password)
     {
         var possibleUser = _userContext.Users.FirstOrDefault(x => x.UserName == username);
@@ -95,26 +96,16 @@ public class UserController : ControllerBase
 
         if (user.Role == UserRole.Guest)
         {
-            Dictionary<string, string> js = new();
-            js.Add("id", user.Id.ToString());
-            js.Add("password", password);
+            Dictionary<string, string> js = new()
+            {
+                { "id", user.Id.ToString() },
+                { "password", password }
+            };
             return Ok(js);
         }
         else
         {
             return Ok(user.Id);
         }
-    }
-    [HttpGet]
-    [Authorize]
-    public ActionResult<string> AuthCheck()
-    {
-        return Ok("I am authorised");
-    }
-    [HttpGet]
-    [Authorize(Roles = "User")]
-    public ActionResult<string> AuthCheckUser()
-    {
-        return Ok("I am authorised User");
     }
 }
