@@ -18,7 +18,8 @@ enum passuser_state{
 }
 
 const computing = ref(0)
-const login_state = computed(async ()=>{
+const login_state = ref(passuser_state.none)
+const login_state_update = async ()=>{
   //TODO: Refactor into multiple methods ran when a specific field changes
   //TODO: Implement request queue
   const result = async () => {
@@ -60,12 +61,12 @@ const login_state = computed(async ()=>{
   }
   computing.value += 1
   const result_val = await result()
-  computing.value += 1
-  return result_val
-})
+  computing.value -= 1
+  login_state.value = result_val
+}
 
-const login_message_guest = computed(async () => {
-  switch (await login_state.value) {
+const login_message_guest = computed(() => {
+  switch (login_state.value) {
     case passuser_state.error:{
       return "An error occurred"
     }
@@ -88,19 +89,19 @@ const login_message_guest = computed(async () => {
     }
   }
 })
-const login_severity_guest = computed(async ()=>{
-  if (await login_state.value === passuser_state.guest) {
+const login_severity_guest = computed(()=>{
+  if (login_state.value === passuser_state.guest) {
     return "primary"
   } else {
     return "danger"
   }
 })
-const login_disabled_guest = computed(async ()=>{
-  return await login_state.value !== passuser_state.guest || computing.value >= 1;
+const login_disabled_guest = computed(()=>{
+  return login_state.value !== passuser_state.guest || computing.value >= 1;
 })
 
-const login_message_user = computed(async () => {
-  switch (await login_state.value) {
+const login_message_user = computed(() => {
+  switch (login_state.value) {
     case passuser_state.error:{
       return "An error occurred"
     }
@@ -125,18 +126,36 @@ const login_message_user = computed(async () => {
     }
   }
 })
-const login_severity_user = computed(async ()=>{
-  if (await login_state.value === passuser_state.user || await login_state.value === passuser_state.user_new) {
+const login_severity_user = computed(()=>{
+  if (login_state.value === passuser_state.user || login_state.value === passuser_state.user_new) {
     return "primary"
   } else {
     return "danger"
   }
 })
-const login_disabled_user = computed(async ()=>{
-  return (await login_state.value !== passuser_state.user && await login_state.value !== passuser_state.user_new)  || computing.value >= 1;
+const login_disabled_user = computed(()=>{
+  return (login_state.value !== passuser_state.user && login_state.value !== passuser_state.user_new)  || computing.value >= 1;
 })
 
-//TODO: Implement buttons
+const guest_button_click = async ()=>{
+  let resp = await fetch(`${localStorage.getItem("backend_host")}/User/Register?username=${username.value}`, {method: 'POST'})
+  if (!resp.ok){
+    return
+  }
+  let json = await resp.json()
+  localStorage.setItem("uid", json.id.toString())
+  localStorage.setItem("password", json.password.toString())
+}
+//TODO: add login handling, in addition to already implemented registration
+const user_button_click = async ()=>{
+  let resp = await fetch(`${localStorage.getItem("backend_host")}/User/Register?username=${username.value}&password=${password.value}`, {method: 'POST'})
+  if (!resp.ok){
+    return
+  }
+  let text = await resp.text()
+  localStorage.setItem("uid", text)
+  localStorage.setItem("password", password.value)
+}
 
 const animation = async () => {
   while (true) {
@@ -176,18 +195,18 @@ onMounted(()=>{
       <div style="width: 60%; height: 100%;"/>
       <div style="width: 40%; height: 100%; display: flex; justify-content: center; align-items: center">
         <Panel style="background: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.1), rgba(0, 0, 0, 0.1)); backdrop-filter: blur(10px);">
-          <div class="flex flex-col gap-4" v-auto-animate>
+          <div class="flex flex-col gap-6" v-auto-animate>
             <FloatLabel>
               <div class="flex gap-2">
-                <InputText id="username" v-model="username"/>
-                <Button v-tooltip="login_message_guest" :disabled="login_disabled_guest" :severity="login_severity_guest" icon="pi pi-user"/>
+                <InputText id="username" v-model="username" @input="login_state_update"/>
+                <Button v-tooltip="login_message_guest" :disabled="login_disabled_guest" :severity="login_severity_guest" @click="guest_button_click" icon="pi pi-user"/>
               </div>
               <label for="username">Username</label>
             </FloatLabel>
             <FloatLabel>
               <div class="flex gap-2">
-                <Password id="password" v-model="password" />
-                <Button v-tooltip="login_message_user" :disabled="login_disabled_user" :severity="login_severity_user" icon="pi pi-check"/>
+                <Password id="password" v-model="password" @input="login_state_update"/>
+                <Button v-tooltip="login_message_user" :disabled="login_disabled_user" :severity="login_severity_user" @click="user_button_click" icon="pi pi-check"/>
               </div>
               <label for="password">Password</label>
             </FloatLabel>
