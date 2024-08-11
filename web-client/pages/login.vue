@@ -2,6 +2,7 @@
 
 import anime from "animejs";
 import {delay} from "unicorn-magic";
+import type {Ref} from "vue";
 
 const username = ref('')
 const password = ref('')
@@ -17,37 +18,89 @@ enum passuser_state{
   user_error_pass_incorrect
 }
 
-const computing = ref(0)
+const computing = ref(false)
+const last_existance = ref('')
+const uid = ref(-1)
+const req_queue: Ref<Array<{datetime: number, type: string}>> = ref([])
 const login_state = ref(passuser_state.none)
+
+const ensure_sorted_queue = () => {
+  req_queue.value.sort((a,b) => {
+    if (a.type === b.type){
+      return a.datetime - b.datetime
+    }
+    else if (a.type === 'username') {
+      return -1
+    } else {
+      return 1
+    }
+  })
+  let pointer = 0
+  while (true){
+    if (pointer + 1 >= req_queue.value.length){
+      break
+    }
+    let current = req_queue.value[pointer]
+    let next = req_queue.value[pointer + 1]
+    if (current.type === next.type){
+      req_queue.value.shift()
+    }
+    else{
+      pointer++
+    }
+  }
+
+}
+
+const login_state_update_username = () => {
+  req_queue.value.push(
+    {
+      datetime: Date.now(),
+      type: 'username'
+    }
+  )
+}
+
+const login_state_update_password = () => {
+  req_queue.value.push(
+    {
+      datetime: Date.now(),
+      type: 'password'
+    }
+  )
+}
 const login_state_update = async ()=>{
-  //TODO: Refactor into multiple methods ran when a specific field changes
-  //TODO: Implement request queue
-  const result = async () => {
+  const result = async (source:string) => {
     if (username.value == ''){
       return passuser_state.none
     }
-    let resp = await fetch(`${localStorage.getItem("backend_host")}/User/UserExists?username=${username.value}`)
-    if (!resp.ok){
-      return passuser_state.error
+    if (source === 'username'){
+      let resp = await fetch(`${localStorage.getItem("backend_host")}/User/UserExists?username=${username.value}`)
+      if (!resp.ok){
+        return passuser_state.error
+      }
+      last_existance.value = await resp.text()
+      if (last_existance.value === 'User'){
+        resp = await fetch(`${localStorage.getItem("backend_host")}/User/GetUid?username=${username.value}`)
+        if (!resp.ok){
+          return passuser_state.error
+        }
+        uid.value = parseInt(await resp.text())
+      }
     }
-    let existance = await resp.text()
-    if (existance == "Guest"){
+
+    if (last_existance.value == "Guest"){
       return passuser_state.error_guest_exists
     }
     if (password.value == ''){
-      if (existance == "User"){
+      if (last_existance.value == "User"){
         return passuser_state.error_user_exists
       } else {
         return passuser_state.guest
       }
     }
-    if (existance == "User"){
-      resp = await fetch(`${localStorage.getItem("backend_host")}/User/GetUid?username=${username.value}`)
-      if (!resp.ok){
-        return passuser_state.error
-      }
-      let uid = parseInt(await resp.text())
-      resp = await fetch(`${localStorage.getItem("backend_host")}/User/TryLogin?uid=${uid}&password=${password.value}`)
+    if (last_existance.value == "User"){
+      let resp = await fetch(`${localStorage.getItem("backend_host")}/User/TryLogin?uid=${uid.value}&password=${password.value}`)
       if (!resp.ok){
         return passuser_state.error
       }
@@ -59,10 +112,18 @@ const login_state_update = async ()=>{
     }
     return passuser_state.user_new
   }
-  computing.value += 1
-  const result_val = await result()
-  computing.value -= 1
-  login_state.value = result_val
+
+  while (window.location.pathname === '/login') {
+    if (req_queue.value.length > 0){
+      computing.value = true
+      ensure_sorted_queue()
+      login_state.value = await result(req_queue.value.shift()!.type)
+    }
+    else{
+      computing.value = false
+    }
+    await delay({milliseconds: 100})
+  }
 }
 
 const login_message_guest = computed(() => {
@@ -97,7 +158,7 @@ const login_severity_guest = computed(()=>{
   }
 })
 const login_disabled_guest = computed(()=>{
-  return login_state.value !== passuser_state.guest || computing.value >= 1;
+  return login_state.value !== passuser_state.guest || computing.value;
 })
 
 const login_message_user = computed(() => {
@@ -134,7 +195,7 @@ const login_severity_user = computed(()=>{
   }
 })
 const login_disabled_user = computed(()=>{
-  return (login_state.value !== passuser_state.user && login_state.value !== passuser_state.user_new)  || computing.value >= 1;
+  return (login_state.value !== passuser_state.user && login_state.value !== passuser_state.user_new)  || computing.value;
 })
 
 const guest_button_click = async ()=>{
@@ -145,20 +206,26 @@ const guest_button_click = async ()=>{
   let json = await resp.json()
   localStorage.setItem("uid", json.id.toString())
   localStorage.setItem("password", json.password.toString())
+  navigateTo("/lobby")
 }
-//TODO: add login handling, in addition to already implemented registration
 const user_button_click = async ()=>{
-  let resp = await fetch(`${localStorage.getItem("backend_host")}/User/Register?username=${username.value}&password=${password.value}`, {method: 'POST'})
-  if (!resp.ok){
-    return
+  if (login_state.value === passuser_state.user_new){
+    let resp = await fetch(`${localStorage.getItem("backend_host")}/User/Register?username=${username.value}&password=${password.value}`, {method: 'POST'})
+    if (!resp.ok){
+      return
+    }
+    let text = await resp.text()
+    localStorage.setItem("uid", text)
   }
-  let text = await resp.text()
-  localStorage.setItem("uid", text)
+  else{
+    localStorage.setItem("uid", uid.value.toString())
+  }
   localStorage.setItem("password", password.value)
+  navigateTo("/lobby")
 }
 
 const animation = async () => {
-  while (true) {
+  while (window.location.pathname === '/login'){
     let animation_unit = document.createElement('p')
     animation_unit.classList.add('pi-spin')
     animation_unit.innerText = '$'
@@ -183,6 +250,7 @@ const animation = async () => {
 
 onMounted(()=>{
   animation()
+  login_state_update()
 })
 
 </script>
@@ -198,14 +266,14 @@ onMounted(()=>{
           <div class="flex flex-col gap-6" v-auto-animate>
             <FloatLabel>
               <div class="flex gap-2">
-                <InputText id="username" v-model="username" @input="login_state_update"/>
+                <InputText id="username" v-model="username" @input="login_state_update_username"/>
                 <Button v-tooltip="login_message_guest" :disabled="login_disabled_guest" :severity="login_severity_guest" @click="guest_button_click" icon="pi pi-user"/>
               </div>
               <label for="username">Username</label>
             </FloatLabel>
             <FloatLabel>
               <div class="flex gap-2">
-                <Password id="password" v-model="password" @input="login_state_update"/>
+                <Password id="password" v-model="password" @input="login_state_update_password"/>
                 <Button v-tooltip="login_message_user" :disabled="login_disabled_user" :severity="login_severity_user" @click="user_button_click" icon="pi pi-check"/>
               </div>
               <label for="password">Password</label>
@@ -220,11 +288,11 @@ onMounted(()=>{
 <style scoped>
 #animation_container{
   position: absolute;
-  left: -200px;
-  top: -200px;
+  left: -1rem;
+  top: -1rem;
   display: flow;
-  width: 140vw;
-  height: 140vh;
+  width: 100vw;
+  height: 103vh;
   grid-row: 1;
   grid-column: 1;
   z-index: 0;

@@ -46,4 +46,6 @@ userDB.Database.EnsureCreated();
 // and also, if you started with EnsureCreated, then you must roll your own migrations manually (first create a new db via migrations (that fits the schema), then use your code to migrate db to db))
 // db.Database.Migrate();
 
+//TODO: Guest removal subroutine
+
 app.Run();
