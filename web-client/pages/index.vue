@@ -1,13 +1,9 @@
 <script setup lang="ts">
-import {navigateTo} from "#app";
+import { navigateTo } from "#app";
 
-navigateTo('/welcome')
+navigateTo("/welcome");
 </script>
 
-<template>
+<template></template>
 
-</template>
-
-<style scoped>
-
-</style>
+<style scoped></style>
