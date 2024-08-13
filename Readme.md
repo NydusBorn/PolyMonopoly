@@ -12,6 +12,9 @@ This project is a simple implementation of the popular board game Monopoly. It i
 
 ### Installation and running
 
+It is highly recommended to use Docker/Podman. 
+Since this simplifies deployment and is configured to run in https by default.
+
 #### Docker/Podman
 
 1. Clone the repository:
@@ -25,30 +28,27 @@ This project is a simple implementation of the popular board game Monopoly. It i
 3. Change network parameters (optional):
 
     The project is configured to run on localhost by default, and thus cannot be used for hosting a public instance.
-   Change BACKEND_HOST in environment in compose-full
-   (or compose-client if you are running the application on multiple hosts) to a full root of a host,
+   Change BACKEND_HOST in environment in compose.yaml to a full root of a host,
    examples include:
 
-    - http://127.0.0.1:8000 (instance for you only)
-    - http://localhost:8000 (instance for you only)
-    - http://192.168.0.1:8000 (instance for you only)
-    - http://1.2.3.4:8000 (would be your public instance, if your public ip is 1.2.3.4)
-    - http://your.website.com:8000 (your public instance)
+    - https://127.0.0.1:8000 (instance for you only)
+    - https://localhost:8000 (instance for you only)
+    - https://192.168.0.1:8000 (instance for you only)
+    - https://1.2.3.4:8000 (would be your public instance, if your public ip is 1.2.3.4)
+    - https://your.website.com:8000 (your public instance)
    
-    This is used only for telling the web clients where to connect to.
+   This is used only for telling the web clients where to connect to.
    Port 8000 is the default backend port,
-   if you want to change it, change host port in ports of asp-backend service in compose-full
-   (or compose-backend if you are running the application on multiple hosts).
+   if you want to change it, change host port in ports of asp-backend service in compose.yaml
     
-    Web client port can be changed in a similar manner,
-   you need to change host port in ports of web-client service in compose-full
-   (or compose-client if you are running the application on multiple hosts).
+   Web client port can be changed in a similar manner,
+   you need to change host port in ports of web-client service in compose.yaml
 
 4. Start the docker containers:
     ```Bash
-    docker compose -f $$ up -d
+    docker compose --profile $$ up -d
     ```
-   Where $$ is any of compose-full.yaml, compose-backend.yaml, compose-client.yaml
+   Where $$ is any of backend, frontend, full
 5. Open your firewall ports (required if this is a public instance):
     - Web client: 3000 by default
     - Backend: 8000 by default

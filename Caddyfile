@@ -1,0 +1,7 @@
+localhost:8000 {
+    reverse_proxy asp-backend:8080
+}
+
+localhost:3000 {
+    reverse_proxy web-client:3000
+}

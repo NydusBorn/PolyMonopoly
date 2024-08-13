@@ -1,0 +1,36 @@
+services:
+  asp-backend:
+    profiles:
+      - backend
+      - full
+    build: ./asp-backend/asp-backend
+    restart: unless-stopped
+    networks:
+      - polymono
+    depends_on:
+      - caddy-proxy
+
+  web-client:
+    profiles:
+      - frontend
+      - full
+    build: ./web-client
+    restart: unless-stopped
+    environment:
+      BACKEND_HOST: "https://localhost:8000"
+    networks:
+      - polymono
+    depends_on:
+      - caddy-proxy
+
+  caddy-proxy:
+    image: caddy:latest
+    restart: unless-stopped
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+    ports:
+      - 3000:3000
+      - 8000:8000
+
+networks:
+  polymono: {}

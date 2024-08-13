@@ -1,6 +1,0 @@
-services:
-  asp-backend:
-    build: ./asp-backend/asp-backend
-    restart: unless-stopped
-    ports:
-      - 8000:8080
