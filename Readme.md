@@ -39,17 +39,17 @@ Since this simplifies deployment and is configured to run in https by default.
    
    This is used only for telling the web clients where to connect to.
    Port 8000 is the default backend port,
-   if you want to change it, change host port in ports of asp-backend service in compose.yaml
+   if you want to change it, change host port in ports of caddy-proxy service in compose.yaml, look for one that targets 8000
     
-   Web client port can be changed in a similar manner,
-   you need to change host port in ports of web-client service in compose.yaml
+   Web client port can be changed similarly.
+   You need to change host port in ports of caddy-proxy service in compose.yaml, look for one that targets 3000
 
 4. Start the docker containers:
     ```Bash
     docker compose --profile $$ up -d
     ```
    Where $$ is any of backend, frontend, full
-5. Open your firewall ports (required if this is a public instance):
+5. Open host firewall ports (required if this is a public instance):
     - Web client: 3000 by default
     - Backend: 8000 by default
 #### Locally
