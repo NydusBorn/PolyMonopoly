@@ -17,6 +17,8 @@ RUN echo 'eval "$(direnv hook zsh)"' >> /home/vscode/.zshrc
 RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && nvm install 22 && nvm use 22 && npm install -g typescript" 2>&1
 # RUN su vscode -c "source /usr/local/share/nvm/nvm.sh && npm install -g <your-package-here>" 2>&1
 
+RUN dotnet tool install --global dotnet-ef
+
 RUN mkdir -p /code
 WORKDIR /code
 COPY ../ ./

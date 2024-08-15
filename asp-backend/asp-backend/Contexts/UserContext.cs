@@ -7,7 +7,7 @@ public class UserContext : DbContext
     public DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlite($"Data Source=./users.db");
+        => optionsBuilder.UseSqlite($"Data Source=./data/users.db");
 }
 
 public enum UserRole
