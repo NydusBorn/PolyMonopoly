@@ -10,11 +10,15 @@ export default defineNuxtConfig({
     "@hypernym/nuxt-anime",
     "@primevue/nuxt-module",
     "@nuxtjs/tailwindcss",
+    "@nuxt/test-utils/module",
   ],
   primevue: {
     options: {
       ripple: true,
     },
     importTheme: { from: "@/theme.js" },
+  },
+  testUtils: {
+    startOnBoot: true,
   },
 });

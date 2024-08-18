@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text;
 using asp_backend.Contexts;
 using Microsoft.AspNetCore.Authorization;
@@ -13,7 +14,7 @@ public class UserController : ControllerBase
     readonly UserContext _userContext = new ();
     readonly PasswordHasher<User> _hasher = new ();
     [HttpGet]
-    public string UserExists([FromQuery] string username)
+    public string UserExists([FromQuery, Required] string username)
     {
         var user = _userContext.Users.FirstOrDefault(x => x.UserName == username);
         if (user == null)
