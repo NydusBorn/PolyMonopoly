@@ -30,7 +30,7 @@ public class UserController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(int))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
-    public ActionResult GetUid([FromQuery] string username)
+    public ActionResult GetUid([FromQuery, Required] string username)
     {
         int uid = _userContext.Users.FirstOrDefault(x => x.UserName == username)?.Id ?? -1;
         if (uid == -1)
@@ -43,7 +43,7 @@ public class UserController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(bool))]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
-    public ActionResult TryLogin([FromQuery] int uid, [FromQuery] string password)
+    public ActionResult TryLogin([FromQuery, Required] int uid, [FromQuery, Required] string password)
     {
         var user = _userContext.Users.FirstOrDefault(x => x.Id == uid);
         if (user == null)
@@ -68,7 +68,7 @@ public class UserController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(int))]
     [ProducesResponseType(StatusCodes.Status202Accepted, Type = typeof(Dictionary<string, string>))]
     [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(string))]
-    public ActionResult Register([FromQuery] string username, [FromQuery] string? password)
+    public ActionResult Register([FromQuery, Required] string username, [FromQuery] string? password)
     {
         var possibleUser = _userContext.Users.FirstOrDefault(x => x.UserName == username);
         if (possibleUser != null)

@@ -6,9 +6,9 @@ This project is a simple implementation of the popular board game Monopoly. It i
 
 ### Prerequisites (if not using Docker/Podman/devcontainer)
 
-- Node.js (v22.3.0 or later)
-- npm (v10.8.1 or later)
-- dotnet core (v8.0.303 or later)
+- Node.js (v22 or later)
+- dotnet core (v8 or later)
+- JDK (v22 or later, required only for e2e testing)
 
 ### Installation and running
 
