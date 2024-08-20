@@ -32,7 +32,7 @@ public class UserController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
     public ActionResult GetUid([FromQuery, Required] string username)
     {
-        int uid = _userContext.Users.FirstOrDefault(x => x.UserName == username)?.Id ?? -1;
+        var uid = _userContext.Users.FirstOrDefault(x => x.UserName == username)?.Id ?? -1;
         if (uid == -1)
         {
             return NotFound("User not found");
@@ -67,9 +67,19 @@ public class UserController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(int))]
     [ProducesResponseType(StatusCodes.Status202Accepted, Type = typeof(Dictionary<string, string>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
     [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(string))]
     public ActionResult Register([FromQuery, Required] string username, [FromQuery] string? password)
     {
+        if (username == "")
+        {
+            return BadRequest("Username cannot be empty");
+        }
+
+        if (password == "")
+        {
+            password = null;
+        }
         var possibleUser = _userContext.Users.FirstOrDefault(x => x.UserName == username);
         if (possibleUser != null)
         {

@@ -1,5 +1,10 @@
 <script setup lang="ts"></script>
 
-<template>lobby</template>
+<template>
+  <Head>
+    <Title>PolyMonopoly - Lobby</Title>
+  </Head>
+  lobby
+</template>
 
 <style scoped></style>

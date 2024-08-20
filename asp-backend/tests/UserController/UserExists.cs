@@ -3,23 +3,8 @@ using Microsoft.AspNetCore.Identity;
 
 namespace UserController;
 
-public class UserExists
+public class UserExists : BaseUserControllerTest
 {
-    private asp_backend.Controllers.UserController _controller_;
-    [SetUp]
-    public void Setup()
-    {
-        var dataDir = new DirectoryInfo("./data");
-        if (!dataDir.Exists)
-        {
-            dataDir.Create();
-        }
-        var db = new asp_backend.Contexts.UserContext();
-        db.Database.EnsureDeleted();
-        db.Database.EnsureCreated();
-        _controller_ = new asp_backend.Controllers.UserController();
-    }
-
     [Test]
     public void None()
     {
@@ -49,8 +34,8 @@ public class UserExists
     [Test]
     public void CloakAdmin()
     {
-        var db = new asp_backend.Contexts.UserContext();
-        var user = db.Users.Add(new asp_backend.Contexts.User
+        var db = new UserContext();
+        var user = db.Users.Add(new User
         {
             Created = default,
             Role = UserRole.Admin,

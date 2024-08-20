@@ -17,10 +17,15 @@ web-start:
     cd web-client/.output/server && \
     node index.mjs
 
+# run client tests
+web-test:
+    cd web-client && \
+    npm run test
+
 # run backend in dev mode
 backend-dev:
     cd asp-backend/asp-backend && \
-    dotnet run asp-backend.dll
+    dotnet run
 
 # publish backend for production
 backend-publish:
@@ -31,3 +36,13 @@ backend-publish:
 backend-start:
     cd asp-backend/asp-backend && \
     dotnet .output/asp-backend.dll
+
+# run backend tests
+backend-test:
+    cd asp-backend && \
+    dotnet test
+
+# run e2e tests
+e2e-test:
+    cd e2e-tests && \
+    ./gradlew test --rerun

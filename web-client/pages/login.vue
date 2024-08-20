@@ -70,7 +70,7 @@ const login_state_update = async () => {
       let resp = await fetch(
         `${localStorage.getItem("backend_host")}/User/UserExists?username=${
           username.value
-        }`
+        }`,
       );
       if (!resp.ok) {
         return passuser_state.error;
@@ -80,7 +80,7 @@ const login_state_update = async () => {
         resp = await fetch(
           `${localStorage.getItem("backend_host")}/User/GetUid?username=${
             username.value
-          }`
+          }`,
         );
         if (!resp.ok) {
           return passuser_state.error;
@@ -103,7 +103,7 @@ const login_state_update = async () => {
       let resp = await fetch(
         `${localStorage.getItem("backend_host")}/User/TryLogin?uid=${
           uid.value
-        }&password=${password.value}`
+        }&password=${password.value}`,
       );
       if (!resp.ok) {
         return passuser_state.error;
@@ -213,7 +213,7 @@ const guest_button_click = async () => {
     `${localStorage.getItem("backend_host")}/User/Register?username=${
       username.value
     }`,
-    { method: "POST" }
+    { method: "POST" },
   );
   if (!resp.ok) {
     return;
@@ -229,7 +229,7 @@ const user_button_click = async () => {
       `${localStorage.getItem("backend_host")}/User/Register?username=${
         username.value
       }&password=${password.value}`,
-      { method: "POST" }
+      { method: "POST" },
     );
     if (!resp.ok) {
       return;
@@ -276,6 +276,9 @@ onMounted(() => {
 </script>
 
 <template>
+  <Head>
+    <Title>PolyMonopoly - Login</Title>
+  </Head>
   <div style="display: grid; width: 100%; height: 100%">
     <div id="animation_container"></div>
     <div

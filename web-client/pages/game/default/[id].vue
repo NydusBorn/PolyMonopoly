@@ -2,6 +2,10 @@
 const route = useRoute();
 </script>
 
-<template>game/default/{{ route.params.id }}</template>
+<template>
+  <Head>
+    <Title>PolyMonopoly - Monopoly: {{ route.params.id }}</Title> </Head
+  >game/default/{{ route.params.id }}
+</template>
 
 <style scoped></style>

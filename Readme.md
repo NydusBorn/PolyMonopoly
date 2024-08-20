@@ -83,13 +83,27 @@ Since this simplifies deployment and is configured to run in https by default.
     ```Bash
     cd asp-backend
     ```
-2. Build the project:
-    ```Bash
-    dotnet build
-    ```
-3. Run the project:
+2. Run the project:
     ```Bash
     dotnet run
     ```
+##### For e2e tests
+1. Navigate to the e2e directory:
+    ```Bash
+    cd e2e-tests
+    ```
+2. Run tests:
+    ```Bash
+    ./gradlew test
+    ```
+##### Automated scenarios
+If you have just runner installed, then you can use just {recipe-name} to run any of the recipes specified in justfile.
+
+More human friendly list of recipes can be achieved via 
+```Bash
+just --list
+```
+
+Before running any recipes, ensure there are no dependencies missing in any of the subprojects you are planning to run.
 ## License
 This project is licensed under the MIT License.
