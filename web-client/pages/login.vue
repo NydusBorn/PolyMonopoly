@@ -321,6 +321,7 @@ onMounted(() => {
                   @input="login_state_update_username"
                 />
                 <Button
+                  id="guest_button"
                   v-tooltip="login_message_guest"
                   :disabled="login_disabled_guest"
                   :severity="login_severity_guest"
@@ -338,6 +339,7 @@ onMounted(() => {
                   @input="login_state_update_password"
                 />
                 <Button
+                  id="user_button"
                   v-tooltip="login_message_user"
                   :disabled="login_disabled_user"
                   :severity="login_severity_user"

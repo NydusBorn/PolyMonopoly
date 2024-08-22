@@ -8,7 +8,6 @@ This project is a simple implementation of the popular board game Monopoly. It i
 
 - Node.js (v22 or later)
 - dotnet core (v8 or later)
-- JDK (v22 or later, required only for e2e testing)
 
 ### Installation and running
 
@@ -94,7 +93,7 @@ Since this simplifies deployment and is configured to run in https by default.
     ```
 2. Run tests:
     ```Bash
-    ./gradlew test
+    npx playwright test
     ```
 ##### Automated scenarios
 If you have just runner installed, then you can use just {recipe-name} to run any of the recipes specified in justfile.

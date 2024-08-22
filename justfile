@@ -45,4 +45,4 @@ backend-test:
 # run e2e tests
 e2e-test:
     cd e2e-tests && \
-    ./gradlew test --rerun
+    npx playwright test
