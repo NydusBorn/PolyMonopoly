@@ -14,20 +14,24 @@
     "@formkit/auto-animate": "^0.8.2",
     "@hypernym/nuxt-anime": "^2.1.1",
     "@nuxtjs/tailwindcss": "^6.12.1",
+    "pinia": "^2.2.2",
+    "@pinia/nuxt": "^0.5.4",
     "@primevue/nuxt-module": "^4.0.0",
     "@primevue/themes": "^4.0.4",
     "nuxt": "^3.12.4",
     "primeicons": "^7.0.0",
     "primevue": "^4.0.4",
-    "vue": "^3.4.38"
+    "vue": "^3.4.38",
+    "@vueuse/nuxt": "^11.0.3",
+    "@vueuse/core": "^11.0.3"
   },
   "devDependencies": {
-    "prettier": "^3.3.3",
     "@nuxt/test-utils": "^3.14.1",
-    "vitest": "^2.0.5",
+    "@vitest/ui": "^2.0.5",
     "@vue/test-utils": "^2.4.6",
     "happy-dom": "^14.12.3",
     "playwright-core": "^1.46.1",
-    "@vitest/ui": "^2.0.5"
+    "prettier": "^3.3.3",
+    "vitest": "^2.0.5"
   }
 }

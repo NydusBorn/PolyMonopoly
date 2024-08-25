@@ -1,4 +1,9 @@
 <script setup lang="ts">
+import { definePageMeta } from "#imports";
+
+definePageMeta({
+  layout: "logged",
+});
 const route = useRoute();
 </script>
 

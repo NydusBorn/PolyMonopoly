@@ -1,7 +1,3 @@
-// https://nuxt.com/docs/api/configuration/nuxt-config
-
-import theme from "./theme.js";
-
 export default defineNuxtConfig({
   compatibilityDate: "2024-04-03",
   devtools: { enabled: true },
@@ -11,6 +7,8 @@ export default defineNuxtConfig({
     "@primevue/nuxt-module",
     "@nuxtjs/tailwindcss",
     "@nuxt/test-utils/module",
+    "@pinia/nuxt",
+    "@vueuse/nuxt",
   ],
   primevue: {
     options: {

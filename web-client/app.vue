@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import "primeicons/primeicons.css";
+import { useNetworkStore } from "~/stores/network";
 
 onMounted(async () => {
   let backend_host = await useFetch("/api/backend");
@@ -8,7 +9,7 @@ onMounted(async () => {
   if (backend_host_str == undefined) {
     alert(
       "backend variable not set (did you set BACKEND_HOST in your environment?): " +
-        backend_host.error.value
+        backend_host.error.value,
     );
     return;
   }
@@ -26,17 +27,19 @@ onMounted(async () => {
   }
   if (!text.includes("PolyMonopoly")) {
     alert(
-      `backend version mismatch: expected to include 'PolyMonopoly' in version string, got: \n'${text}'`
+      `backend version mismatch: expected to include 'PolyMonopoly' in version string, got: \n'${text}'`,
     );
     return;
   }
-  localStorage.setItem("backend_host", backend_host_str);
+  useNetworkStore().setBackendHost(backend_host_str);
 });
 </script>
 
 <template>
-  <div style="height: 98vh; width: 98vw">
-    <NuxtPage />
+  <div style="height: 100vh; width: 100vw">
+    <NuxtLayout>
+      <NuxtPage />
+    </NuxtLayout>
   </div>
 </template>
 

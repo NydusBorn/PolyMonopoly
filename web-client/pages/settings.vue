@@ -8,9 +8,9 @@ definePageMeta({
 
 <template>
   <Head>
-    <Title>PolyMonopoly - Lobby</Title>
+    <Title>PolyMonopoly - Settings</Title>
   </Head>
-  lobby
+  settings
 </template>
 
 <style scoped></style>

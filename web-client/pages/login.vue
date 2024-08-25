@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import anime from "animejs";
 import { delay } from "unicorn-magic";
 import type { Ref } from "vue";
+import { useNetworkStore } from "~/stores/network";
+import { useUserStore } from "~/stores/user";
+
+definePageMeta({
+  layout: "animated-backdrop",
+});
 
 const username = ref("");
 const password = ref("");
@@ -22,6 +27,8 @@ const last_existance = ref("");
 const uid = ref(-1);
 const req_queue: Ref<Array<{ datetime: number; type: string }>> = ref([]);
 const login_state = ref(passuser_state.none);
+const net_store = useNetworkStore();
+const user_store = useUserStore();
 
 const ensure_sorted_queue = () => {
   req_queue.value.sort((a, b) => {
@@ -68,9 +75,7 @@ const login_state_update = async () => {
     }
     if (source === "username") {
       let resp = await fetch(
-        `${localStorage.getItem("backend_host")}/User/UserExists?username=${
-          username.value
-        }`,
+        `${net_store.backend_host}/User/UserExists?username=${username.value}`,
       );
       if (!resp.ok) {
         return passuser_state.error;
@@ -78,9 +83,7 @@ const login_state_update = async () => {
       last_existance.value = await resp.text();
       if (last_existance.value === "User") {
         resp = await fetch(
-          `${localStorage.getItem("backend_host")}/User/GetUid?username=${
-            username.value
-          }`,
+          `${net_store.backend_host}/User/GetUid?username=${username.value}`,
         );
         if (!resp.ok) {
           return passuser_state.error;
@@ -101,7 +104,7 @@ const login_state_update = async () => {
     }
     if (last_existance.value == "User") {
       let resp = await fetch(
-        `${localStorage.getItem("backend_host")}/User/TryLogin?uid=${
+        `${net_store.backend_host}/User/TryLogin?uid=${
           uid.value
         }&password=${password.value}`,
       );
@@ -210,23 +213,21 @@ const login_disabled_user = computed(() => {
 
 const guest_button_click = async () => {
   let resp = await fetch(
-    `${localStorage.getItem("backend_host")}/User/Register?username=${
-      username.value
-    }`,
+    `${net_store.backend_host}/User/Register?username=${username.value}`,
     { method: "POST" },
   );
   if (!resp.ok) {
     return;
   }
   let json = await resp.json();
-  localStorage.setItem("uid", json.id.toString());
-  localStorage.setItem("password", json.password.toString());
+  user_store.setUid(json.id);
+  user_store.setPassword(json.password);
   navigateTo("/lobby");
 };
 const user_button_click = async () => {
   if (login_state.value === passuser_state.user_new) {
     let resp = await fetch(
-      `${localStorage.getItem("backend_host")}/User/Register?username=${
+      `${net_store.backend_host}/User/Register?username=${
         username.value
       }&password=${password.value}`,
       { method: "POST" },
@@ -235,42 +236,15 @@ const user_button_click = async () => {
       return;
     }
     let text = await resp.text();
-    localStorage.setItem("uid", text);
+    user_store.setUid(Number.parseInt(text));
   } else {
-    localStorage.setItem("uid", uid.value.toString());
+    user_store.setUid(uid.value);
   }
-  localStorage.setItem("password", password.value);
+  user_store.setPassword(password.value);
   navigateTo("/lobby");
 };
 
-const animation = async () => {
-  while (window.location.pathname === "/login") {
-    let animation_unit = document.createElement("p");
-    animation_unit.classList.add("pi-spin");
-    animation_unit.innerText = "$";
-    document.getElementById("animation_container")!.appendChild(animation_unit);
-    animation_unit.style.left = Math.random() * 99 + "%";
-    animation_unit.style.top = -Math.random() * 99 - 20 + "%";
-    animation_unit.style.scale = (Math.random() * 5 + 2).toString();
-    animation_unit.style.color = "gold";
-    animation_unit.style.position = "absolute";
-    anime({
-      targets: animation_unit,
-      top: "110%",
-      duration: 10000,
-      easing: "easeInQuad",
-      complete: () => {
-        document
-          .getElementById("animation_container")!
-          .removeChild(animation_unit);
-      },
-    });
-    await delay({ milliseconds: 125 });
-  }
-};
-
 onMounted(() => {
-  animation();
   login_state_update();
 });
 </script>
@@ -280,7 +254,6 @@ onMounted(() => {
     <Title>PolyMonopoly - Login</Title>
   </Head>
   <div style="display: grid; width: 100%; height: 100%">
-    <div id="animation_container"></div>
     <div
       style="
         width: 100%;
@@ -356,21 +329,4 @@ onMounted(() => {
   </div>
 </template>
 
-<style scoped>
-#animation_container {
-  position: absolute;
-  left: -1rem;
-  top: -1rem;
-  display: flow;
-  width: 100vw;
-  height: 103vh;
-  grid-row: 1;
-  grid-column: 1;
-  z-index: 0;
-  background: radial-gradient(
-    circle at 50% 50%,
-    rgba(255, 255, 255, 0.05),
-    rgba(0, 0, 0, 0.05)
-  );
-}
-</style>
+<style scoped></style>
