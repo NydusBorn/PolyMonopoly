@@ -1,3 +1,4 @@
+using asp_backend;
 using asp_backend.Contexts;
 using Microsoft.AspNetCore.Identity;
 
@@ -34,15 +35,14 @@ public class UserExists : BaseUserControllerTest
     [Test]
     public void CloakAdmin()
     {
-        var db = new UserContext();
-        var user = db.Users.Add(new User
+        var user = Statics._userContext.Users.Add(new User
         {
             Created = default,
             Role = UserRole.Admin,
             UserName = "test",
         });
         user.Entity.PasswordHash = new PasswordHasher<User>().HashPassword(user.Entity, "test");
-        db.SaveChanges();
+        Statics._userContext.SaveChanges();
         var result = _controller_.UserExists("test");
         Assert.That(result, Is.EqualTo("User"));
     }

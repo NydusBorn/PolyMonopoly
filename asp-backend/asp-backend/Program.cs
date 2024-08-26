@@ -43,19 +43,17 @@ if (!dataDir.Exists)
     dataDir.Create();
 }
 
-var userDB = new UserContext();
-
 if (app.Environment.IsDevelopment())
 {
     // Fine for in development, removes db to stay in compliance with current schema
-    await userDB.Database.EnsureDeletedAsync();
-    await userDB.Database.EnsureCreatedAsync();
+    await Statics._userContext.Database.EnsureDeletedAsync();
+    await Statics._userContext.Database.EnsureCreatedAsync();
 }
 else
 {
     // If modification of db is required in production, then use the Migrate method (you must consult ef core documentation on migrations,
     // and also, if you started with EnsureCreated, then you must roll your own migrations manually (first create a new db via migrations (that fits the schema), then use your code to migrate db to db))
-    await userDB.Database.MigrateAsync();
+    await Statics._userContext.Database.MigrateAsync();
 }
 
 //TODO: Guest removal subroutine

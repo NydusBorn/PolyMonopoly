@@ -1,3 +1,5 @@
+using asp_backend;
+
 namespace UserController;
 
 
@@ -12,9 +14,8 @@ public class BaseUserControllerTest
         {
             dataDir.Create();
         }
-        var db = new asp_backend.Contexts.UserContext();
-        db.Database.EnsureDeleted();
-        db.Database.EnsureCreated();
+        Statics._userContext.Database.EnsureDeleted();
+        Statics._userContext.Database.EnsureCreated();
         _controller_ = new asp_backend.Controllers.UserController();
     }
 }

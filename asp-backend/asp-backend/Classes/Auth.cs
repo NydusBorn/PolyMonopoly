@@ -12,9 +12,6 @@ namespace asp_backend;
 public class Auth : AuthenticationHandler<AuthenticationSchemeOptions>
 {
 
-    readonly UserContext _userContext = new();
-    readonly PasswordHasher<User> _hasher = new ();
-
     public Auth(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder,
         ISystemClock clock) : base(options, logger, encoder, clock)
     {
@@ -43,10 +40,10 @@ public class Auth : AuthenticationHandler<AuthenticationSchemeOptions>
             var userId = int.Parse(credentialsString.Substring(0, credentialsString.IndexOf(':')));
             // Extract password
             var password = credentialsString.Substring(credentialsString.IndexOf(':') + 1);
-            user = _userContext.Users.FirstOrDefault(x => x.Id == userId);
+            user = Statics._userContext.Users.FirstOrDefault(x => x.Id == userId);
 
             // Check if user is not found or invalid credentials
-            if (user == null || _hasher.VerifyHashedPassword(user, user.PasswordHash!, password) == PasswordVerificationResult.Failed)
+            if (user == null || Statics._hasher.VerifyHashedPassword(user, user.PasswordHash!, password) == PasswordVerificationResult.Failed)
             {
 
                 return AuthenticateResult.Fail("Invalid Username or Password");

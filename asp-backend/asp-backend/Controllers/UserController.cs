@@ -11,12 +11,10 @@ namespace asp_backend.Controllers;
 [Route("[controller]/[action]")]
 public class UserController : ControllerBase
 {
-    readonly UserContext _userContext = new ();
-    readonly PasswordHasher<User> _hasher = new ();
     [HttpGet]
     public string UserExists([FromQuery, Required] string username)
     {
-        var user = _userContext.Users.FirstOrDefault(x => x.UserName == username);
+        var user = Statics._userContext.Users.FirstOrDefault(x => x.UserName == username);
         if (user == null)
         {
             return "None";
@@ -32,7 +30,7 @@ public class UserController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
     public ActionResult GetUid([FromQuery, Required] string username)
     {
-        var uid = _userContext.Users.FirstOrDefault(x => x.UserName == username)?.Id ?? -1;
+        var uid = Statics._userContext.Users.FirstOrDefault(x => x.UserName == username)?.Id ?? -1;
         if (uid == -1)
         {
             return NotFound("User not found");
@@ -45,14 +43,14 @@ public class UserController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
     public ActionResult TryLogin([FromQuery, Required] int uid, [FromQuery, Required] string password)
     {
-        var user = _userContext.Users.FirstOrDefault(x => x.Id == uid);
+        var user = Statics._userContext.Users.FirstOrDefault(x => x.Id == uid);
         if (user == null)
         {
             return NotFound("User not found");
         }
         else
         {
-            if (_hasher.VerifyHashedPassword(user, user.PasswordHash!, password) ==
+            if (Statics._hasher.VerifyHashedPassword(user, user.PasswordHash!, password) ==
                 PasswordVerificationResult.Success)
             {
                 return Ok(true);
@@ -80,7 +78,7 @@ public class UserController : ControllerBase
         {
             password = null;
         }
-        var possibleUser = _userContext.Users.FirstOrDefault(x => x.UserName == username);
+        var possibleUser = Statics._userContext.Users.FirstOrDefault(x => x.UserName == username);
         if (possibleUser != null)
         {
             return Conflict(possibleUser.Role == UserRole.Guest ? "Guest already exists" : "User already exists");
@@ -101,9 +99,9 @@ public class UserController : ControllerBase
 
             password = tBuilder.ToString();
         }
-        user.PasswordHash = _hasher.HashPassword(user, password);
-        _userContext.Users.Add(user);
-        _userContext.SaveChanges();
+        user.PasswordHash = Statics._hasher.HashPassword(user, password);
+        Statics._userContext.Users.Add(user);
+        Statics._userContext.SaveChanges();
 
         if (user.Role == UserRole.Guest)
         {
