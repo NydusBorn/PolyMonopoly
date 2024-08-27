@@ -18,14 +18,19 @@ public class LobbyController : ControllerBase
     Dictionary<int, string> _usersInLobbies = new ();
 
     [HttpGet]
-    public List<Tuple<string, string, int>> GetLobbies()
+    public List<Dictionary<string,string>> GetLobbies()
     {
-        List<Tuple<string, string, int>> found_lobbies = new();
+        List<Dictionary<string,string>> found_lobbies = new();
         foreach (var lobby in _lobbies)
         {
-            found_lobbies.Add(new (lobby.Id, lobby.GameName, lobby.Participants.Count));
+            found_lobbies.Add(new ()
+            {
+                {"lobbyid", lobby.Id},
+                {"lobbyname", lobby.GameName},
+                {"gametype", lobby.GameType.ToString()},
+                {"playercount", lobby.Participants.Count(x=> x.Role == Lobby.TUser.Roles.Player).ToString()},
+            });
         }
-
         return found_lobbies;
     }
 
@@ -54,7 +59,7 @@ public class LobbyController : ControllerBase
     {
         int creatorUid = int.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         Lobby newLobby = new(creatorUid, gameType, gameName);
-        while (_lobbies.Any(x=>x.Id == newLobby.Id))
+        while (_lobbies.Exists(x=>x.Id == newLobby.Id))
         {
             newLobby = new (creatorUid, gameType, gameName);
         }
