@@ -2,10 +2,9 @@ import { defineStore } from "pinia";
 
 export const useUserStore = defineStore("user", {
   state: () => {
-    return {
-      uid: useLocalStorage("user.uid", -1).value,
-      password: useLocalStorage("user.password", "").value,
-    };
+    useLocalStorage("user.uid", -1);
+    useLocalStorage("user.password", "");
+    return {};
   },
   actions: {
     setUid(uid: number) {
@@ -13,6 +12,22 @@ export const useUserStore = defineStore("user", {
     },
     setPassword(password: string) {
       useLocalStorage("user.password", "").value = password;
+    },
+  },
+  getters: {
+    uid: () => {
+      return useLocalStorage("user.uid", -1).value;
+    },
+    password: () => {
+      return useLocalStorage("user.password", "").value;
+    },
+    encoded: () => {
+      const encoder = new TextEncoder();
+      const buffer = encoder.encode(
+        `${useLocalStorage("user.uid", -1).value}:${useLocalStorage("user.password", "").value}`,
+      );
+      const encoded = btoa(String.fromCharCode.apply(null, buffer));
+      return encoded;
     },
   },
 });

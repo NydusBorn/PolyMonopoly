@@ -24,6 +24,6 @@ public class User
     public DateTime Created { get; init; }
     public required UserRole Role { get; set; }
     public required string UserName { get; init; }
-    public string? Name { get; set; }
+    public string Name { get; set; }
     public string? PasswordHash { get; set; }
 }

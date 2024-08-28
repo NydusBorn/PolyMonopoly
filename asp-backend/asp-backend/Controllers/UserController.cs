@@ -86,6 +86,7 @@ public class UserController : ControllerBase
         var user = new User
         {
             UserName = username,
+            Name = username,
             Role = password != null ? UserRole.User : UserRole.Guest,
             Created = DateTime.Now
         };

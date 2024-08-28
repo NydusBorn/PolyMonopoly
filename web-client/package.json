@@ -16,8 +16,8 @@
     "@nuxtjs/tailwindcss": "^6.12.1",
     "pinia": "^2.2.2",
     "@pinia/nuxt": "^0.5.4",
-    "@primevue/nuxt-module": "^4.0.0",
     "@primevue/themes": "^4.0.4",
+    "tailwindcss-primeui": "^0.3.4",
     "nuxt": "^3.12.4",
     "primeicons": "^7.0.0",
     "primevue": "^4.0.4",
@@ -27,6 +27,7 @@
   },
   "devDependencies": {
     "@nuxt/test-utils": "^3.14.1",
+    "@primevue/nuxt-module": "^4.0.0",
     "@vitest/ui": "^2.0.5",
     "@vue/test-utils": "^2.4.6",
     "happy-dom": "^14.12.3",

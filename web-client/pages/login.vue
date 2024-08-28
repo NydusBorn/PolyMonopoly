@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { delay } from "unicorn-magic";
 import type { Ref } from "vue";
 import { useNetworkStore } from "~/stores/network";
 import { useUserStore } from "~/stores/user";
@@ -68,7 +67,7 @@ const login_state_update_password = () => {
     type: "password",
   });
 };
-const login_state_update = async () => {
+const login_state_update = async (count: number) => {
   const result = async (source: string) => {
     if (username.value == "") {
       return passuser_state.none;
@@ -120,18 +119,15 @@ const login_state_update = async () => {
     return passuser_state.user_new;
   };
 
-  while (window.location.pathname === "/login") {
-    if (req_queue.value.length > 0) {
-      computing.value = true;
-      ensure_sorted_queue();
-      login_state.value = await result(req_queue.value.shift()!.type);
-    } else {
-      computing.value = false;
-    }
-    await delay({ milliseconds: 100 });
+  if (req_queue.value.length > 0 && computing.value === false) {
+    computing.value = true;
+    ensure_sorted_queue();
+    login_state.value = await result(req_queue.value.shift()!.type);
+  } else {
+    computing.value = false;
   }
 };
-
+useInterval(100, { callback: login_state_update });
 const login_message_guest = computed(() => {
   switch (login_state.value) {
     case passuser_state.error: {
@@ -243,10 +239,6 @@ const user_button_click = async () => {
   user_store.setPassword(password.value);
   navigateTo("/lobby");
 };
-
-onMounted(() => {
-  login_state_update();
-});
 </script>
 
 <template>

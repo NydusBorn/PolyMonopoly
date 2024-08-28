@@ -14,8 +14,8 @@ namespace asp_backend.Controllers;
 [Authorize]
 public class LobbyController : ControllerBase
 {
-    List<Lobby> _lobbies = new ();
-    Dictionary<int, string> _usersInLobbies = new ();
+    static List<Lobby> _lobbies = new ();
+    static Dictionary<int, string> _usersInLobbies = new ();
 
     [HttpGet]
     public List<Dictionary<string,string>> GetLobbies()
@@ -35,20 +35,29 @@ public class LobbyController : ControllerBase
     }
 
     [HttpGet]
-    public Dictionary<string, string> GetOwnState()
+    public (string item1, List<Dictionary<string, string>> item2) GetOwnState()
     {
         int userUid = int.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        Dictionary<string,string> state = new();
-        state["lobbyid"] = _usersInLobbies.TryGetValue(userUid, out var lobbyid) ? lobbyid : "";
-        if (state["lobbyid"] == "") return state;
-        if (_lobbies.Exists(x => x.Id == state["lobbyid"]))
+        (string item1, List<Dictionary<string, string>> item2) state = default;
+        state.item1 = _usersInLobbies.TryGetValue(userUid, out var lobbyid) ? lobbyid : "";
+        if (state.item1 == "") return state;
+        if (!_lobbies.Exists(x => x.Id == state.item1))
         {
-            var lobby = _lobbies.Find(x => x.Id == state["lobbyid"]);
-            var user = lobby.Participants.FirstOrDefault(x => x.Primitive.Id == userUid);
-            if (user != null)
+            _usersInLobbies.Remove(userUid);
+            state.item1 = "";
+            return state;
+        }
+        if (_lobbies.Exists(x => x.Id == state.item1))
+        {
+            var lobby = _lobbies.Find(x => x.Id == state.item1);
+            foreach (var participant in lobby.Participants)
             {
-                state["role"] = user.Role.ToString();
-                state["ready"] = user.Ready.ToString();
+                Dictionary<string, string> usr = new();
+                usr["uid"] = participant.Primitive.Id.ToString();
+                usr["username"] = participant.Primitive.Name;
+                usr["iscreator"] = participant.Primitive.Id == lobby.Creator.Id ? "true" : "false";
+                usr["role"] = participant.Role.ToString();
+                usr["ready"] = participant.Ready.ToString();
             }
         }
         return state;
