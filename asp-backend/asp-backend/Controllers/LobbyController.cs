@@ -1,4 +1,6 @@
+using System.ComponentModel.DataAnnotations;
 using System.Net.Http.Headers;
+using System.Runtime.InteropServices;
 using System.Security.Authentication;
 using System.Security.Claims;
 using System.Text;
@@ -35,21 +37,21 @@ public class LobbyController : ControllerBase
     }
 
     [HttpGet]
-    public (string item1, List<Dictionary<string, string>> item2) GetOwnState()
+    public (string, List<Dictionary<string, string>>) GetOwnState()
     {
         int userUid = int.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        (string item1, List<Dictionary<string, string>> item2) state = default;
-        state.item1 = _usersInLobbies.TryGetValue(userUid, out var lobbyid) ? lobbyid : "";
-        if (state.item1 == "") return state;
-        if (!_lobbies.Exists(x => x.Id == state.item1))
+        (string, List<Dictionary<string, string>>) state = ("", new());
+        state.Item1 = _usersInLobbies.TryGetValue(userUid, out var lobbyid) ? lobbyid : "";
+        if (state.Item1 == "") return state;
+        if (!_lobbies.Exists(x => x.Id == state.Item1))
         {
             _usersInLobbies.Remove(userUid);
-            state.item1 = "";
+            state.Item1 = "";
             return state;
         }
-        if (_lobbies.Exists(x => x.Id == state.item1))
+        if (_lobbies.Exists(x => x.Id == state.Item1))
         {
-            var lobby = _lobbies.Find(x => x.Id == state.item1);
+            var lobby = _lobbies.Find(x => x.Id == state.Item1);
             foreach (var participant in lobby.Participants)
             {
                 Dictionary<string, string> usr = new();
@@ -58,28 +60,37 @@ public class LobbyController : ControllerBase
                 usr["iscreator"] = participant.Primitive.Id == lobby.Creator.Id ? "true" : "false";
                 usr["role"] = participant.Role.ToString();
                 usr["ready"] = participant.Ready.ToString();
+                state.Item2.Add(usr);
             }
         }
         return state;
     }
 
     [HttpPost]
-    public string CreateLobby(Lobby.GameTypes gameType, string gameName)
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(string))]
+    [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(string))]
+    public ActionResult CreateLobby([FromQuery, Required] Lobby.GameTypes gameType, [FromQuery, Optional] string? gameName)
     {
         int creatorUid = int.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        Lobby newLobby = new(creatorUid, gameType, gameName);
+        if (_usersInLobbies.TryGetValue(creatorUid, out var lobby))
+        {
+            var exists = _lobbies.Find(x => x.Id == lobby);
+            if (exists != null) return Conflict("Can't create lobby when already in one");
+        }
+        Lobby newLobby = new(creatorUid, gameType, gameName??"");
         while (_lobbies.Exists(x=>x.Id == newLobby.Id))
         {
-            newLobby = new (creatorUid, gameType, gameName);
+            newLobby = new (creatorUid, gameType, gameName??"");
         }
         _lobbies.Add(newLobby);
-        return newLobby.Id;
+        _usersInLobbies[creatorUid] = newLobby.Id;
+        return Ok(newLobby.Id);
     }
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public ActionResult JoinLobby(string lobbyId)
+    public ActionResult JoinLobby([FromQuery, Required] string lobbyId)
     {
         int userUid = int.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var possibleLobby = _lobbies.Find(x => x.Id == lobbyId);
@@ -111,7 +122,7 @@ public class LobbyController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public ActionResult SetReady(bool ready)
+    public ActionResult SetReady([FromQuery, Required]bool ready)
     {
         int userUid = int.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         if (_usersInLobbies.TryGetValue(userUid, out var lobbyId))
@@ -128,7 +139,7 @@ public class LobbyController : ControllerBase
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status404NotFound, Type = typeof(string))]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public ActionResult SetRole(Lobby.TUser.Roles role)
+    public ActionResult SetRole([FromQuery, Required] Lobby.TUser.Roles role)
     {
         int userUid = int.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         if (_usersInLobbies.TryGetValue(userUid, out var lobbyId))
@@ -149,7 +160,7 @@ public class Lobby
     public enum GameTypes
     {
         Demo,
-        Default
+        Monopoly
     }
     public class TUser(User user)
     {

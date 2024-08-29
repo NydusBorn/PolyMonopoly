@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.InteropServices;
 using System.Text;
 using asp_backend.Contexts;
 using Microsoft.AspNetCore.Authorization;
@@ -67,7 +68,7 @@ public class UserController : ControllerBase
     [ProducesResponseType(StatusCodes.Status202Accepted, Type = typeof(Dictionary<string, string>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(string))]
     [ProducesResponseType(StatusCodes.Status409Conflict, Type = typeof(string))]
-    public ActionResult Register([FromQuery, Required] string username, [FromQuery] string? password)
+    public ActionResult Register([FromQuery, Required] string username, [FromQuery, Optional] string? password)
     {
         if (username == "")
         {
