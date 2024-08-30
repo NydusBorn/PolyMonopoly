@@ -1,9 +1,12 @@
 using System.ComponentModel.DataAnnotations;
 using System.Net.Http.Headers;
 using System.Runtime.InteropServices;
+using System.Runtime.Serialization;
 using System.Security.Authentication;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using asp_backend.Contexts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -16,14 +19,11 @@ namespace asp_backend.Controllers;
 [Authorize]
 public class LobbyController : ControllerBase
 {
-    static List<Lobby> _lobbies = new ();
-    static Dictionary<int, string> _usersInLobbies = new ();
-
     [HttpGet]
     public List<Dictionary<string,string>> GetLobbies()
     {
         List<Dictionary<string,string>> found_lobbies = new();
-        foreach (var lobby in _lobbies)
+        foreach (var lobby in Statics._lobbies)
         {
             found_lobbies.Add(new ()
             {
@@ -37,33 +37,39 @@ public class LobbyController : ControllerBase
     }
 
     [HttpGet]
-    public (string, List<Dictionary<string, string>>) GetOwnState()
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof((string lobbyid, List<Dictionary<string, string>> participants)))]
+    public string GetOwnState()
     {
         int userUid = int.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        (string, List<Dictionary<string, string>>) state = ("", new());
-        state.Item1 = _usersInLobbies.TryGetValue(userUid, out var lobbyid) ? lobbyid : "";
-        if (state.Item1 == "") return state;
-        if (!_lobbies.Exists(x => x.Id == state.Item1))
+        (string lobbyid, List<Dictionary<string, string>> participants) state = new()
         {
-            _usersInLobbies.Remove(userUid);
-            state.Item1 = "";
-            return state;
+            lobbyid = Statics._usersInLobbies.TryGetValue(userUid, out var lobbyid) ? lobbyid : "",
+            participants = []
+        };
+        if (state.lobbyid == "") return Statics.Serialize(state);
+        if (!Statics._lobbies.Exists(x => x.Id == state.lobbyid))
+        {
+            Statics._usersInLobbies.Remove(userUid);
+            state.lobbyid = "";
+            return Statics.Serialize(state);
         }
-        if (_lobbies.Exists(x => x.Id == state.Item1))
+        if (Statics._lobbies.Exists(x => x.Id == state.lobbyid))
         {
-            var lobby = _lobbies.Find(x => x.Id == state.Item1);
+            var lobby = Statics._lobbies.Find(x => x.Id == state.lobbyid);
             foreach (var participant in lobby.Participants)
             {
-                Dictionary<string, string> usr = new();
-                usr["uid"] = participant.Primitive.Id.ToString();
-                usr["username"] = participant.Primitive.Name;
-                usr["iscreator"] = participant.Primitive.Id == lobby.Creator.Id ? "true" : "false";
-                usr["role"] = participant.Role.ToString();
-                usr["ready"] = participant.Ready.ToString();
-                state.Item2.Add(usr);
+                Dictionary<string, string> usr = new()
+                {
+                    ["uid"] = participant.Primitive.Id.ToString(),
+                    ["username"] = participant.Primitive.Name,
+                    ["iscreator"] = participant.Primitive.Id == lobby.Creator.Id ? "True" : "False",
+                    ["role"] = participant.Role.ToString(),
+                    ["ready"] = participant.Ready.ToString()
+                };
+                state.participants.Add(usr);
             }
         }
-        return state;
+        return Statics.Serialize(state);
     }
 
     [HttpPost]
@@ -72,18 +78,18 @@ public class LobbyController : ControllerBase
     public ActionResult CreateLobby([FromQuery, Required] Lobby.GameTypes gameType, [FromQuery, Optional] string? gameName)
     {
         int creatorUid = int.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        if (_usersInLobbies.TryGetValue(creatorUid, out var lobby))
+        if (Statics._usersInLobbies.TryGetValue(creatorUid, out var lobby))
         {
-            var exists = _lobbies.Find(x => x.Id == lobby);
+            var exists = Statics._lobbies.Find(x => x.Id == lobby);
             if (exists != null) return Conflict("Can't create lobby when already in one");
         }
         Lobby newLobby = new(creatorUid, gameType, gameName??"");
-        while (_lobbies.Exists(x=>x.Id == newLobby.Id))
+        while (Statics._lobbies.Exists(x=>x.Id == newLobby.Id))
         {
             newLobby = new (creatorUid, gameType, gameName??"");
         }
-        _lobbies.Add(newLobby);
-        _usersInLobbies[creatorUid] = newLobby.Id;
+        Statics._lobbies.Add(newLobby);
+        Statics._usersInLobbies[creatorUid] = newLobby.Id;
         return Ok(newLobby.Id);
     }
 
@@ -93,14 +99,14 @@ public class LobbyController : ControllerBase
     public ActionResult JoinLobby([FromQuery, Required] string lobbyId)
     {
         int userUid = int.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var possibleLobby = _lobbies.Find(x => x.Id == lobbyId);
+        var possibleLobby = Statics._lobbies.Find(x => x.Id == lobbyId);
         if (possibleLobby == null)
         {
             return NotFound("Lobby not found");
         }
         else
         {
-            _usersInLobbies[userUid] = possibleLobby.Id;
+            Statics._usersInLobbies[userUid] = possibleLobby.Id;
             possibleLobby.AddParticipant(userUid);
             return Ok();
         }
@@ -110,12 +116,12 @@ public class LobbyController : ControllerBase
     public void LeaveLobby()
     {
         int userUid = int.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        if (_usersInLobbies.ContainsKey(userUid))
+        if (Statics._usersInLobbies.ContainsKey(userUid))
         {
-            var lobbyId = _usersInLobbies[userUid];
-            var possibleLobby = _lobbies.Find(x => x.Id == lobbyId);
+            var lobbyId = Statics._usersInLobbies[userUid];
+            var possibleLobby = Statics._lobbies.Find(x => x.Id == lobbyId);
             possibleLobby?.RemoveParticipant(userUid);
-            _usersInLobbies.Remove(userUid);
+            Statics._usersInLobbies.Remove(userUid);
         }
     }
 
@@ -125,9 +131,9 @@ public class LobbyController : ControllerBase
     public ActionResult SetReady([FromQuery, Required]bool ready)
     {
         int userUid = int.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        if (_usersInLobbies.TryGetValue(userUid, out var lobbyId))
+        if (Statics._usersInLobbies.TryGetValue(userUid, out var lobbyId))
         {
-            var possibleLobby = _lobbies.Find(x => x.Id == lobbyId);
+            var possibleLobby = Statics._lobbies.Find(x => x.Id == lobbyId);
             possibleLobby?.SetReady(userUid, ready);
             return Ok();
         }
@@ -142,9 +148,9 @@ public class LobbyController : ControllerBase
     public ActionResult SetRole([FromQuery, Required] Lobby.TUser.Roles role)
     {
         int userUid = int.Parse(HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        if (_usersInLobbies.TryGetValue(userUid, out var lobbyId))
+        if (Statics._usersInLobbies.TryGetValue(userUid, out var lobbyId))
         {
-            var possibleLobby = _lobbies.Find(x => x.Id == lobbyId);
+            var possibleLobby = Statics._lobbies.Find(x => x.Id == lobbyId);
             possibleLobby?.SetRole(userUid, role);
             return Ok();
         }

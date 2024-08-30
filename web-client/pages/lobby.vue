@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script async setup lang="ts">
 import { definePageMeta } from "#imports";
 import { Any } from "@vitest/expect";
 
@@ -52,8 +52,29 @@ const update_view = async () => {
       );
       const own_state_json = await own_state_resp.json();
 
-      if (own_state_json.lobbyid !== "") {
-        //TODO
+      if (own_state_json.Item1 !== "") {
+        visible_lobby.value = true;
+        current_lobby.value = own_state_json.Item1;
+        participants.value = [];
+        let t_participants = own_state_json.Item2;
+        t_participants.forEach((participant: any) => {
+          let typed_participant = {
+            uid: "",
+            username: "",
+            iscreator: false,
+            role: "",
+            ready: false,
+          };
+          typed_participant.uid = participant.uid;
+          typed_participant.username = participant.username;
+          typed_participant.iscreator = participant.iscreator === "True";
+          typed_participant.role = participant.role;
+          typed_participant.ready = participant.ready === "True";
+          participants.value.push(typed_participant);
+        });
+      } else {
+        current_lobby.value = "";
+        visible_lobby.value = false;
       }
     }
     computing.value = false;
@@ -99,7 +120,79 @@ const create_lobby = async () => {
   }
 };
 
-//TODO: inside lobby is modal dialog
+const visible_lobby = ref(false);
+const current_lobby = ref("");
+const participants = ref<
+  Array<{
+    uid: string;
+    username: string;
+    iscreator: boolean;
+    role: string;
+    ready: boolean;
+  }>
+>([]);
+const player_uid = ref(user_store.uid);
+const player = computed(() => {
+  return participants.value.find(
+    (x) => Number.parseInt(x.uid) === player_uid.value,
+  );
+});
+
+const join_lobby = async (id: string) => {
+  const resp = await fetch(
+    `${net_store.backend_host}/Lobby/JoinLobby?lobbyid=${id}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: user_store.encoded,
+      },
+    },
+  );
+  if (!resp.ok) {
+    return;
+  }
+};
+
+const leave_lobby = async () => {
+  const resp = await fetch(`${net_store.backend_host}/Lobby/LeaveLobby`, {
+    method: "POST",
+    headers: {
+      Authorization: user_store.encoded,
+    },
+  });
+  if (!resp.ok) {
+    return;
+  }
+};
+
+const toggle_ready = async () => {
+  const resp = await fetch(
+    `${net_store.backend_host}/Lobby/SetReady?ready=${!player.value?.ready}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: user_store.encoded,
+      },
+    },
+  );
+  if (!resp.ok) {
+    return;
+  }
+};
+const toggle_role = async () => {
+  const resp = await fetch(
+    `${net_store.backend_host}/Lobby/SetRole?role=${player.value?.role === "Player" ? "Spectator" : "Player"}`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: user_store.encoded,
+      },
+    },
+  );
+  if (!resp.ok) {
+    return;
+  }
+};
 </script>
 
 <template>
@@ -120,6 +213,11 @@ const create_lobby = async () => {
       <Column field="name" header="Lobby Name" />
       <Column field="playerCount" header="Lobby Playercount" />
       <Column field="type" header="Game Type" />
+      <Column>
+        <template #body="slotProps">
+          <Button label="Join" @click="join_lobby(slotProps.data.id)" />
+        </template>
+      </Column>
     </DataTable>
     <Button
       icon="pi pi-plus"
@@ -163,6 +261,94 @@ const create_lobby = async () => {
         @click="create_lobby"
         :disabled="disable_create"
         :severity="severity_create"
+      />
+    </div>
+  </Dialog>
+  <Dialog
+    :visible="visible_lobby"
+    modal
+    :header="`Lobby ${lobbies.find((x) => x.id === current_lobby)?.name}`"
+    style="backdrop-filter: blur(10px); background: #00000030"
+    :closable="false"
+  >
+    <div style="display: flex; flex-direction: column; gap: 1.5rem">
+      <div
+        style="
+          height: 60vh;
+          width: 60vw;
+          display: flex;
+          flex-direction: row;
+          gap: 1.5rem;
+        "
+      >
+        <DataTable :value="participants" style="width: 100%">
+          <Column field="username" header="Username">
+            <template #body="slotProps">
+              <div style="display: grid; grid: auto / 0fr 0fr">
+                <p style="grid-column: 1; grid-row: 1">
+                  {{ slotProps.data.username }}
+                </p>
+                <p
+                  style="
+                    position: relative;
+                    rotate: -30deg;
+                    grid-column: 1;
+                    grid-row: 1;
+                    top: -7px;
+                    left: -7px;
+                  "
+                  class="pi pi-crown"
+                  v-if="slotProps.data.iscreator"
+                />
+              </div>
+            </template>
+          </Column>
+          <Column field="role" header="Role" />
+          <Column field="ready" header="Ready">
+            <template #body="slotProps">
+              <Checkbox :model-value="slotProps.data.ready" binary />
+            </template>
+          </Column>
+        </DataTable>
+        <div
+          style="
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            width: 30%;
+            height: 100%;
+          "
+        >
+          <div
+            style="
+              margin-top: auto;
+              display: flex;
+              gap: 1rem;
+              flex-direction: row;
+            "
+          >
+            <Button
+              style="width: 100%"
+              :label="player?.ready ? 'Ready' : 'Not Ready'"
+              :severity="player?.ready ? 'success' : 'info'"
+              @click="toggle_ready"
+            />
+            <Button
+              style="width: 100%"
+              :label="player?.role === 'Player' ? 'Player' : 'Spectator'"
+              :severity="player?.role === 'Player' ? 'success' : 'info'"
+              @click="toggle_role"
+            />
+          </div>
+        </div>
+      </div>
+      <Button
+        label="Leave Lobby"
+        iconPos="left"
+        icon="pi pi-sign-out"
+        @click="leave_lobby"
+        style="margin-top: auto"
+        severity="danger"
       />
     </div>
   </Dialog>
