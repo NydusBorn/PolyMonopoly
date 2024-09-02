@@ -7,8 +7,8 @@ namespace asp_backend;
 
 public static class Statics
 {
-    public static readonly UserContext _userContext = new ();
-    public static readonly PasswordHasher<User> _hasher = new ();
+    public static UserContext _userContext = new ();
+    public static PasswordHasher<User> _hasher = new ();
     public static List<Lobby> _lobbies = new ();
     public static Dictionary<int, string> _usersInLobbies = new ();
 

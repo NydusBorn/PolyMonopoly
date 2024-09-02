@@ -40,6 +40,7 @@ public class UserExists : BaseUserControllerTest
             Created = default,
             Role = UserRole.Admin,
             UserName = "test",
+            Name = "test"
         });
         user.Entity.PasswordHash = new PasswordHasher<User>().HashPassword(user.Entity, "test");
         Statics._userContext.SaveChanges();

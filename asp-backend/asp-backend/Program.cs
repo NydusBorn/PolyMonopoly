@@ -37,12 +37,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-var dataDir = new DirectoryInfo("./data");
-if (!dataDir.Exists)
-{
-    dataDir.Create();
-}
-
 if (app.Environment.IsDevelopment())
 {
     // Fine for in development, removes db to stay in compliance with current schema
