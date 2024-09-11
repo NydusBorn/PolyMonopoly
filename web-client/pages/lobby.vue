@@ -53,6 +53,7 @@ const update_view = async () => {
       const own_state_json = await own_state_resp.json();
 
       if (own_state_json.Item1 !== "") {
+        visible_create.value = false;
         visible_lobby.value = true;
         current_lobby.value = own_state_json.Item1;
         participants.value = [];
