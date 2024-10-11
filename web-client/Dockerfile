@@ -12,6 +12,8 @@ COPY public ./public/
 COPY app.vue ./
 COPY theme.js ./
 COPY pages ./pages/
+COPY stores ./stores/
+COPY layouts ./layouts/
 COPY server/api ./server/api
 RUN npm run build
 
